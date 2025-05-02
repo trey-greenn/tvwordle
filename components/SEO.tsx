@@ -11,11 +11,12 @@ type SEOProps = {
 
 const SEO = ({
     // ... existing code ...
-    title = 'TV Wordle - Guess the Mystery TV Show',
-    description = 'Dive into TV Wordle, the ultimate guessing game for TV enthusiasts. Test your knowledge of popular TV shows by guessing the mystery show in a limited number of tries. Enjoy a fun and engaging way to explore your favorite TV series and discover new ones.',
+  title = 'TV Wordle - Guess the Mystery TV Show',
+  description = 'Dive into TV Wordle, the ultimate guessing game for TV enthusiasts. Test your knowledge of popular TV shows by guessing the mystery show in a limited number of tries. Enjoy a fun and engaging way to explore your favorite TV series and discover new ones.',
   image = '/wordle.png',
   type = 'website',
   structuredData = null,
+  url = ''
 }: SEOProps) => {
   return (
     <Head>
