@@ -182,7 +182,20 @@ export default function Home() {
 
   return (
     <div className="container">
-      <SEO/>
+           <SEO
+        title="Home - TV Wordle"
+        description="Welcome to TV Wordle, the ultimate guessing game for TV enthusiasts. Test your knowledge of popular TV shows by guessing the mystery show in a limited number of tries."
+        url="https://yourwebsite.com"
+        image="/path-to-image.png"
+        type="website"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "url": "https://yourwebsite.com",
+          "name": "TV Wordle",
+          "description": "Dive into TV Wordle, the ultimate guessing game for TV enthusiasts."
+        }}
+      />
 
       <main className="main">
         <h1 className="title">TV Wordle</h1>
