@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import SEO from '@/components/SEO';
+import Header from '@/components/Header';
 
 // ... existing code ...
 
@@ -181,7 +182,8 @@ export default function Home() {
   }
 
   return (
-    <div className="container">
+    <div className="w-full">
+        <Header/>
            <SEO
         title="Home - TV Wordle"
         description="Welcome to TV Wordle, the ultimate guessing game for TV enthusiasts. Test your knowledge of popular TV shows by guessing the mystery show in a limited number of tries."
