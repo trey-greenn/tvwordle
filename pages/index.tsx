@@ -3,26 +3,20 @@ import Head from 'next/head';
 import SEO from '@/components/SEO';
 import Header from '@/components/Header';
 
-// ... existing code ...
-
-// Dummy data for TV shows based on tvwordle.csv
-const dummyShows = [
-  { title: "Breaking Bad", genre: "Drama", startYear: 2008, endYear: 2013, seasons: 5, network: "AMC" },
-  { title: "Game of Thrones", genre: "Fantasy", startYear: 2011, endYear: 2019, seasons: 8, network: "HBO" },
-  { title: "Friends", genre: "Comedy", startYear: 1994, endYear: 2004, seasons: 10, network: "NBC" },
-  { title: "The Office", genre: "Comedy", startYear: 2005, endYear: 2013, seasons: 9, network: "NBC" },
-  { title: "Stranger Things", genre: "Sci-Fi", startYear: 2016, endYear: "Running", seasons: 4, network: "Netflix" },
-  { title: "The Sopranos", genre: "Drama", startYear: 1999, endYear: 2007, seasons: 6, network: "HBO" },
-  { title: "The Simpsons", genre: "Animation", startYear: 1989, endYear: "Running", seasons: 35, network: "Fox" },
-  { title: "The Crown", genre: "Drama", startYear: 2016, endYear: 2023, seasons: 6, network: "Netflix" },
-  { title: "Lost", genre: "Drama", startYear: 2004, endYear: 2010, seasons: 6, network: "ABC" },
-  { title: "The Mandalorian", genre: "Sci-Fi", startYear: 2019, endYear: "Running", seasons: 3, network: "Disney+" },
-];
+// TV Show interface
+interface TVShow {
+  title: string;
+  genre: string;
+  startYear: number | string;
+  endYear: number | string;
+  seasons: number;
+  network: string;
+}
 
 // Game state interface
 interface GameState {
-  mysteryShow: typeof dummyShows[0] | null;
-  guesses: typeof dummyShows[0][];
+  mysteryShow: TVShow | null;
+  guesses: TVShow[];
   gameOver: boolean;
   won: boolean;
   gaveUp: boolean;
@@ -31,8 +25,9 @@ interface GameState {
 }
 
 export default function Home() {
+  const [tvShows, setTvShows] = useState<TVShow[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredShows, setFilteredShows] = useState<typeof dummyShows>([]);
+  const [filteredShows, setFilteredShows] = useState<TVShow[]>([]);
   const [showInstructions, setShowInstructions] = useState(true);
   const [gameState, setGameState] = useState<GameState>({
     mysteryShow: null,
@@ -44,23 +39,58 @@ export default function Home() {
     maxGuesses: 8
   });
 
-  // Initialize game on component mount
+  // Fetch CSV data and initialize game
   useEffect(() => {
-    // Select a random show as the mystery show
-    const randomIndex = Math.floor(Math.random() * dummyShows.length);
-    setGameState(prev => ({
-      ...prev,
-      mysteryShow: dummyShows[randomIndex],
-      loading: false
-    }));
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/tvwordle.csv');
+        const csvData = await response.text();
+        
+        // Parse CSV data manually
+        const lines = csvData.split('\n');
+        const headers = lines[0].split(',');
+        
+        const parsedShows: TVShow[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          const values = lines[i].split(',');
+          const show: TVShow = {
+            title: values[0],
+            genre: values[1],
+            startYear: parseInt(values[2]),
+            endYear: values[3] === 'Running' ? 'Running' : parseInt(values[3]),
+            seasons: parseInt(values[4]),
+            network: values[5]
+          };
+          
+          parsedShows.push(show);
+        }
+        
+        setTvShows(parsedShows);
+        
+        // Select a random show as the mystery show
+        const randomIndex = Math.floor(Math.random() * parsedShows.length);
+        setGameState(prev => ({
+          ...prev,
+          mysteryShow: parsedShows[randomIndex],
+          loading: false
+        }));
+        
+        // Check if user has played before
+        const hasPlayed = localStorage.getItem('tvWordleHasPlayed');
+        if (hasPlayed) {
+          setShowInstructions(false);
+        } else {
+          localStorage.setItem('tvWordleHasPlayed', 'true');
+        }
+      } catch (error) {
+        console.error('Error fetching CSV data:', error);
+      }
+    };
     
-    // Check if user has played before
-    const hasPlayed = localStorage.getItem('tvWordleHasPlayed');
-    if (hasPlayed) {
-      setShowInstructions(false);
-    } else {
-      localStorage.setItem('tvWordleHasPlayed', 'true');
-    }
+    fetchData();
   }, []);
 
   // Handle search input change
@@ -69,7 +99,7 @@ export default function Home() {
     setSearchTerm(term);
     
     if (term.length > 0) {
-      const filtered = dummyShows.filter(show => 
+      const filtered = tvShows.filter(show => 
         show.title.toLowerCase().includes(term.toLowerCase()) &&
         !gameState.guesses.some(guess => guess.title === show.title)
       );
@@ -80,7 +110,7 @@ export default function Home() {
   };
 
   // Handle show selection
-  const selectShow = (show: typeof dummyShows[0]) => {
+  const selectShow = (show: TVShow) => {
     setSearchTerm('');
     setFilteredShows([]);
     
@@ -113,9 +143,9 @@ export default function Home() {
 
   // Handle new game
   const handleNewGame = () => {
-    const randomIndex = Math.floor(Math.random() * dummyShows.length);
+    const randomIndex = Math.floor(Math.random() * tvShows.length);
     setGameState({
-      mysteryShow: dummyShows[randomIndex],
+      mysteryShow: tvShows[randomIndex],
       guesses: [],
       gameOver: false,
       won: false,
@@ -126,13 +156,13 @@ export default function Home() {
   };
 
   // Check if a property matches the mystery show
-  const isMatch = (guess: typeof dummyShows[0], property: keyof typeof dummyShows[0]) => {
+  const isMatch = (guess: TVShow, property: keyof TVShow) => {
     if (!gameState.mysteryShow) return false;
     return guess[property] === gameState.mysteryShow[property];
   };
 
   // Get directional hint for numeric values
-  const getDirectionalHint = (guess: typeof dummyShows[0], property: 'startYear' | 'endYear' | 'seasons') => {
+  const getDirectionalHint = (guess: TVShow, property: 'startYear' | 'endYear' | 'seasons') => {
     if (!gameState.mysteryShow) return null;
     
     // Handle "Running" endYear special case
