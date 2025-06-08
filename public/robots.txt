@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: www.tvwordle.com
+
+# Sitemaps
+Sitemap: www.tvwordle.com/sitemap.xml
